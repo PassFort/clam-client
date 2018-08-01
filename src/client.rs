@@ -23,26 +23,26 @@ impl ClamClient {
     }
 
     pub fn ping(&self) -> ClamResult<bool> {
-        match self.send_command(b"PING\0") {
+        match self.send_command(b"zPING\0") {
             Ok(resp) => Ok(resp == "PONG"),
             Err(e) => Err(e)
         }
     }
 
     pub fn version(&self) -> ClamResult<ClamVersion> {
-        let resp = self.send_command(b"VERSION\0")?;
+        let resp = self.send_command(b"zVERSION\0")?;
         ClamVersion::parse(resp)
     }
 
     pub fn reload(&self) -> ClamResult<String> {
-        self.send_command(b"RELOAD\0")
+        self.send_command(b"zRELOAD\0")
     }
 
     pub fn scan_path(&self, path: &str, continue_on_virus: bool) -> ClamResult<String> {
         if continue_on_virus {
-            self.send_command(&format!("CONTSCAN {}\0", path).into_bytes())
+            self.send_command(&format!("zCONTSCAN {}\0", path).into_bytes())
         } else {
-            self.send_command(&format!("SCAN {}\0", path).into_bytes())
+            self.send_command(&format!("zSCAN {}\0", path).into_bytes())
         }
     }
 
@@ -76,7 +76,7 @@ impl ClamClient {
     }
 
     pub fn shutdown(&self) -> ClamResult<String> {
-        self.send_command(b"SHUTDOWN\0")
+        self.send_command(b"zSHUTDOWN\0")
     }
 
     fn send_command(&self, command: &[u8]) -> ClamResult<String> {
