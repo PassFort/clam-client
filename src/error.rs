@@ -12,4 +12,6 @@ pub enum ClamError {
     IntParseError(::std::num::ParseIntError),
     #[fail(display = "{}", _0)]
     DateParseError(::chrono::format::ParseError),
+    #[fail(display = "{}", _0)]
+    StatsParseError(String)
 }

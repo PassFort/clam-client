@@ -1,6 +1,6 @@
 use byteorder::{BigEndian, ByteOrder};
 use error::ClamError;
-use response::{ClamStats, ClamVersion};
+use response::{ClamStats, ClamVersion, ClamScanResult};
 use std::io::{BufReader, Read, Write};
 use std::net::IpAddr;
 use std::net::SocketAddr;
@@ -39,16 +39,18 @@ impl ClamClient {
         self.send_command(b"zRELOAD\0")
     }
 
-    pub fn scan_path(&self, path: &str, continue_on_virus: bool) -> ClamResult<String> {
-        if continue_on_virus {
-            self.send_command(&format!("zCONTSCAN {}\0", path).into_bytes())
+    pub fn scan_path(&self, path: &str, continue_on_virus: bool) -> ClamResult<ClamScanResult> {
+        let result = if continue_on_virus {
+            self.send_command(&format!("zCONTSCAN {}\0", path).into_bytes())?
         } else {
-            self.send_command(&format!("zSCAN {}\0", path).into_bytes())
-        }
+            self.send_command(&format!("zSCAN {}\0", path).into_bytes())?
+        };
+
+        ClamScanResult::parse(result)
     }
 
     // TODO: Error handling, actual results, etc.
-    pub fn scan_stream<T: Read>(&self, stream: T) -> ClamResult<String> {
+    pub fn scan_stream<T: Read>(&self, stream: T) -> ClamResult<ClamScanResult> {
         let mut reader = BufReader::new(stream);
         let mut buffer = [0; 4096];
         let mut length_buffer = [0; 4];
@@ -68,12 +70,12 @@ impl ClamClient {
         }
 
         self.connection_write(&connection, &[0, 0, 0, 0])?;
-        connection.shutdown(::std::net::Shutdown::Write).unwrap();
 
         let mut result = String::new();
-        connection.read_to_string(&mut result).unwrap();
-
-        Ok(result)
+        match connection.read_to_string(&mut result) {
+            Ok(_) => ClamScanResult::parse(result),
+            Err(e) => Err(ClamError::ConnectionError(e))
+        }
     }
 
     pub fn stats(&self) -> ClamResult<ClamStats> {
