@@ -1,6 +1,7 @@
 extern crate clam_client;
 
 use clam_client::client::ClamClient;
+use clam_client::response::ClamScanResult;
 use std::fs::File;
 use std::env;
 
@@ -9,7 +10,16 @@ fn main() {
         let client = ClamClient::new("127.0.0.1", 3310).unwrap();
         let file = File::open(&path).unwrap();
 
-        println!("Scan for '{}':\n\t{:?}\n", path, client.scan_stream(file).unwrap());
+        match client.scan_stream(file) {
+            Ok(result) =>
+                match result {
+                    ClamScanResult::Ok => println!("File {} is OK!", path),
+                    ClamScanResult::Found(virus) => println!("Found virus: '{}' in {}", virus, path),
+                    ClamScanResult::Error(err) => println!("Received error from ClamAV: {}", err)
+                }
+            Err(e) => println!("A network error occurred whilst talking to ClamAV:\n{}", e)
+        }
+
     } else {
         println!("USAGE: cargo run --example stream \"<file_path>\"");
     }
