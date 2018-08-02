@@ -11,5 +11,5 @@ pub enum ClamError {
     #[fail(display = "{}", _0)]
     IntParseError(::std::num::ParseIntError),
     #[fail(display = "{}", _0)]
-    DateParseError(::chrono::format::ParseError)
+    DateParseError(::chrono::format::ParseError),
 }

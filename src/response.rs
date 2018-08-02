@@ -1,6 +1,6 @@
+use chrono::{DateTime, TimeZone, Utc};
 use client::ClamResult;
 use error::ClamError;
-use chrono::{DateTime, Utc, TimeZone};
 use std::str::FromStr;
 
 #[derive(Debug)]
@@ -11,14 +11,14 @@ pub struct ClamStats {
     pub threads_idle: u64,
     pub threads_max: u64,
     pub threads_idle_timeout_secs: u64,
-    pub queue: u64
+    pub queue: u64,
 }
 
 #[derive(Debug)]
 pub struct ClamVersion {
     pub version_tag: String,
     pub build_number: u64,
-    pub release_date: DateTime<Utc>
+    pub release_date: DateTime<Utc>,
 }
 
 impl ClamVersion {
@@ -26,27 +26,26 @@ impl ClamVersion {
         let parts: Vec<String> = v_string.split('/').map(|s| s.to_owned()).collect();
 
         if parts.len() != 3 {
-            return Err(ClamError::InvalidData(v_string))
+            return Err(ClamError::InvalidData(v_string));
         }
 
         let bn = match parts[1].parse() {
             Ok(v) => v,
-            Err(e) => return Err(ClamError::IntParseError(e))
+            Err(e) => return Err(ClamError::IntParseError(e)),
         };
 
         let dt = match Utc.datetime_from_str(&parts[2], "%a %b %e %T %Y") {
             Ok(v) => v,
-            Err(e) => return Err(ClamError::DateParseError(e))
+            Err(e) => return Err(ClamError::DateParseError(e)),
         };
 
         Ok(ClamVersion {
             version_tag: parts[0].to_owned(),
             build_number: bn,
-            release_date: dt
+            release_date: dt,
         })
     }
 }
-
 
 //TODO
 impl ClamStats {
