@@ -50,7 +50,7 @@ impl ClamVersion {
 
 //TODO
 impl ClamStats {
-    pub fn parse(s_string: String) -> ClamResult<Self> {
+    pub fn parse(s_string: &str) -> ClamResult<Self> {
         // let lines: HashMap<String, String> = s_string.lines()
         //     .filter(|s| s != &"" && s.contains(":"))
         //     .flat_map(|l| l.split(":"))
@@ -64,7 +64,7 @@ impl ClamStats {
         //     pools: lines["POOLS"].parse().unwrap()
         // })
         // println!("{:?}", parse_stats(&s_string).unwrap_err());
-        Ok(parse_stats(&s_string).unwrap().1)
+        Ok(parse_stats(s_string).unwrap().1)
     }
 
     //POOLS: 1\n\nSTATE: VALID PRIMARY\nTHREADS: live 1  idle 0 max 12 idle-timeout 30\nQUEUE: 0 items\n\tSTATS 0.000213 \n\nMEMSTATS: heap 8.484M mmap 0.320M used 6.585M free 1.900M releasable 0.057M pools 1 pools_used 565.435M pools_total 565.456M\nEND
@@ -78,25 +78,25 @@ named!(parse_stats<&str, ClamStats>,
         state: map_res!(take_until_and_consume!("\n"), FromStr::from_str) >>
         tag!("THREADS: ") >>
         take_until_and_consume!("live ") >>
-        th_live: map_res!(take_until_and_consume!("  "), u64::from_str) >>
+        threads_live: map_res!(take_until_and_consume!("  "), u64::from_str) >>
         take_until_and_consume!("idle ") >>
-        th_idle: map_res!(take_until_and_consume!(" "), u64::from_str) >>
+        threads_idle: map_res!(take_until_and_consume!(" "), u64::from_str) >>
         take_until_and_consume!("max ") >>
-        th_max: map_res!(take_until_and_consume!(" "), u64::from_str) >> 
+        threads_max: map_res!(take_until_and_consume!(" "), u64::from_str) >> 
         take_until_and_consume!("idle-timeout ") >>
-        th_idle_timeout: map_res!(take_until_and_consume!("\n"), u64::from_str) >> 
+        threads_idle_timeout_secs: map_res!(take_until_and_consume!("\n"), u64::from_str) >> 
         tag!("QUEUE: ") >>
         queue: map_res!(take_until_and_consume!(" items\n"), u64::from_str) >> 
         take_until_and_consume!("\n\n") >>
         (
             ClamStats {
-                pools: pools,
-                state: state,
-                threads_live: th_live,
-                threads_idle: th_idle,
-                threads_max: th_max,
-                threads_idle_timeout_secs: th_idle_timeout,
-                queue: queue
+                pools,
+                state,
+                threads_live,
+                threads_idle,
+                threads_max,
+                threads_idle_timeout_secs,
+                queue
             }
         )
     )

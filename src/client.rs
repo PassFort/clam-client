@@ -5,6 +5,7 @@ use std::net::TcpStream;
 use std::time::Duration;
 use std::io::{Write, Read, BufReader};
 use response::{ClamVersion, ClamStats};
+use byteorder::{ByteOrder, BigEndian};
 
 pub type ClamResult<T> = ::std::result::Result<T, ClamError>;
 
@@ -47,32 +48,37 @@ impl ClamClient {
     }
 
     // TODO: Error handling, actual results, etc.
-    pub fn scan_stream<T: Read>(&self, stream: T) -> ClamResult<bool> {
+    pub fn scan_stream<T: Read>(&self, stream: T) -> ClamResult<String> {
         let mut reader = BufReader::new(stream);
         let mut buffer = [0; 4096];
+        let mut length_buffer = [0; 4];
         let mut connection = self.connect()?; 
 
-        &connection.write(b"zINSTREAM\0");
-        loop {
-            let bytes_read = reader.read(&mut buffer).unwrap();
-            &connection.write(&bytes_read.to_be().to_bytes()).unwrap();
-            &connection.write(&buffer).unwrap();
-            if bytes_read == 0 {
-                &connection.shutdown(::std::net::Shutdown::Write);
+        self.connection_write(&connection, b"zINSTREAM\0")?;
+
+        while let Ok(bytes_read) = reader.read(&mut buffer) {
+            BigEndian::write_u32(&mut length_buffer, bytes_read as u32);
+            
+            self.connection_write(&connection, &length_buffer)?;
+            self.connection_write(&connection, &buffer)?;
+ 
+            if bytes_read < 4096 {
                 break;
             }
         }
 
+        self.connection_write(&connection, &[0, 0, 0,0])?;
+        connection.shutdown(::std::net::Shutdown::Write).unwrap();
+
         let mut result = String::new();
         connection.read_to_string(&mut result).unwrap();
-        println!("{}", result);
 
-        Ok(true)
+        Ok(result)
     }
 
     pub fn stats(&self) -> ClamResult<ClamStats> {
         let resp: String = self.send_command(b"zSTATS\0")?;
-        ClamStats::parse(resp)
+        ClamStats::parse(&resp)
     }
 
     pub fn shutdown(&self) -> ClamResult<String> {
@@ -82,10 +88,10 @@ impl ClamClient {
     fn send_command(&self, command: &[u8]) -> ClamResult<String> {
         let mut connection = self.connect()?;
 
-        return match connection.write_all(command) {
+        match connection.write_all(command) {
             Ok(_) => {
                 let mut result = String::new();
-                return match connection.read_to_string(&mut result) {
+                match connection.read_to_string(&mut result) {
                     Ok(len) => {
                         if len > 1 {
                             result.truncate(len - 1);
@@ -99,6 +105,13 @@ impl ClamClient {
             Err(e) => {
                 Err(ClamError::CommandError(e))
             }
+        }
+    }
+
+    fn connection_write(&self, mut connection: &TcpStream, command: &[u8]) -> ClamResult<usize> {
+        match connection.write(command) {
+            Ok(v) => Ok(v),
+            Err(e) => Err(ClamError::CommandError(e))
         }
     }
 
@@ -125,7 +138,7 @@ fn build(ip: &str, port: u16, timeout: Option<Duration>) -> ClamResult<ClamClien
     let socket = SocketAddr::new(addr, port);
 
     Ok(ClamClient {
-        socket: socket,
-        timeout: timeout
+        timeout,
+        socket
     })
 }

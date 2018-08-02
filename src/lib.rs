@@ -2,6 +2,7 @@
 #[macro_use] extern crate nom;
 
 extern crate chrono;
+extern crate byteorder;
 
 pub mod error;
 pub mod response;
