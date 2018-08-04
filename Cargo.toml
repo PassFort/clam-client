@@ -2,6 +2,16 @@
 name = "clam-client"
 version = "0.1.0"
 authors = ["Joseph Brailsford <joe@brailsford.xyz>"]
+description = "A simple Rust implementation for talking to ClamD"
+keywords = ["ClamAV", "ClamD", "Antivirus", "File Scanning"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://gitlab.com/AviateX14/clam-client"
+repository = "https://gitlab.com/AviateX14/clam-client"
+
+[badges]
+gitlab = { repository = "AviateX14/clam-client", branch = "master" }
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 failure = "0.1.1"
