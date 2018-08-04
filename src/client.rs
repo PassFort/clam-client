@@ -108,7 +108,7 @@ impl ClamClient {
     /// - `path`: The path to scan, this is a path that is on the ClamD server, or that it has access to.
     /// - `continue_on_virus`: If true, instructs ClamD to continue scanning even after it detects a virus.
     /// 
-    ///     /// *Example*
+    /// *Example*
     /// 
     /// ```rust
     /// extern crate clam_client;
