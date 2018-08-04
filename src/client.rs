@@ -43,7 +43,7 @@ impl ClamClient {
     /// 
     /// fn main() {
     ///     if let Ok(client) = ClamClient::new("127.0.0.1", 3310) {
-    ///         println!("{:?}", client.version().unwrap());
+    ///         println!("{:?}", client.version());
     ///     }
     /// }
     /// ```
@@ -69,7 +69,7 @@ impl ClamClient {
     /// 
     /// fn main() {
     ///     if let Ok(client) = ClamClient::new_with_timeout("127.0.0.1", 3310, 10) {
-    ///         println!("{:?}", client.version().unwrap());
+    ///         println!("{:?}", client.version());
     ///     }
     /// }
     /// ```
@@ -119,7 +119,7 @@ impl ClamClient {
     /// fn main() {
     ///     let client = ClamClient::new("127.0.0.1", 3310).unwrap();
     ///
-    ///     if let Ok(scan_results) => client.scan_path(file, true){
+    ///     if let Ok(scan_results) = client.scan_path("/tmp/", true){
     ///         for result in scan_results.iter() {
     ///             match result {
     ///                 ClamScanResult::Found(location, virus) => {
@@ -170,14 +170,14 @@ impl ClamClient {
     ///
     /// fn main() {
     ///     let client = ClamClient::new("127.0.0.1", 3310).unwrap();
-    ///     let file = File::open("/etc/hostname").unwrap();
+    ///     let file = File::open("/etc/hosts").unwrap();
     ///
     ///     match client.scan_stream(file) {
     ///         Ok(result) => match result {
-    ///             ClamScanResult::Ok => println!("File {} is OK!", path),
+    ///             ClamScanResult::Ok => println!("File /etc/hostname is OK!"),
     ///             ClamScanResult::Found(location, virus) => {
     ///                 println!("Found virus: '{}' in {}", virus, location)
-    ///             }
+    ///             },
     ///             ClamScanResult::Error(err) => println!("Received error from ClamAV: {}", err),
     ///         },
     ///         Err(e) => println!("A network error occurred whilst talking to ClamAV:\n{}", e),
