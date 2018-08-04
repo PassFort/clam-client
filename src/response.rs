@@ -37,7 +37,7 @@ pub struct ClamVersion {
 }
 
 /// `ClamScanResult` Provides a `match` 'friendly' interface for receiving the result of a scan.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ClamScanResult {
     /// An `Ok` response means that Clam found no virus in the given file/directory.
     Ok,
@@ -167,3 +167,139 @@ named!(parse_stats<&str, ClamStats>,
         )
     )
 );
+
+#[cfg(test)]
+mod tests {
+    use chrono::prelude::*;
+    use response;
+
+    static VERSION_STRING: &'static str = "ClamAV 0.100.0/24802/Wed Aug  1 08:43:37 2018";
+    static STATS_STRING: &'static str = "POOLS: 1\n\nSTATE: VALID PRIMARY\nTHREADS: live 1  idle 0 max 12 idle-timeout 30\nQUEUE: 0 items\n\tSTATS 0.000394\n\nMEMSTATS: heap 9.082M mmap 0.000M used 6.902M free 2.184M releasable 0.129M pools 1 pools_used 565.979M pools_total 565.999M\nEND\0";
+
+    #[test]
+    fn test_version_parse_version_tag() {
+        let raw = VERSION_STRING.to_owned();
+        let parsed = response::ClamVersion::parse(raw).unwrap();
+        assert_eq!(parsed.version_tag, "ClamAV 0.100.0".to_string());
+    }
+
+    #[test]
+    fn test_version_parse_build_number() {
+        let raw = VERSION_STRING.to_owned();
+        let parsed = response::ClamVersion::parse(raw).unwrap();
+        assert_eq!(parsed.build_number, 24802);
+    }
+
+    #[test]
+    fn test_version_parse_publish_dt() {
+        let raw = VERSION_STRING.to_owned();
+        let parsed = response::ClamVersion::parse(raw).unwrap();
+        assert_eq!(parsed.release_date, Utc.datetime_from_str("Wed Aug  1 08:43:37 2018", "%a %b %e %T %Y").unwrap());
+    }
+
+    #[test]
+    fn test_result_parse_ok() {
+        let raw = "/some/file: OK\0";
+        let parsed = response::ClamScanResult::parse(raw);
+        assert_eq!(parsed[0], response::ClamScanResult::Ok);
+    }
+
+    #[test]
+    fn test_result_parse_found() {
+        let raw = "/some/file: SOME_BAD-Virus FOUND\0";
+        let parsed = response::ClamScanResult::parse(raw);
+        assert_eq!(parsed[0], response::ClamScanResult::Found("/some/file".to_string(), "SOME_BAD-Virus".to_string()));
+    }
+
+
+    #[test]
+    fn test_result_parse_error() {
+        let raw = "/some/file: lstat() failed or some other random error\0";
+        let parsed = response::ClamScanResult::parse(raw);
+        assert_eq!(parsed[0], response::ClamScanResult::Error("/some/file: lstat() failed or some other random error".to_string()));
+    }
+
+    #[test]
+    fn test_stats_parse_pools() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.pools, 1);
+    }
+
+    #[test]
+    fn test_stats_parse_state() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.state, "VALID PRIMARY".to_string());
+    }
+
+    #[test]
+    fn test_stats_parse_live_threads() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.threads_live, 1);
+    }
+
+    #[test]
+    fn test_stats_parse_idle_threads() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.threads_idle, 0);
+    }
+
+    #[test]
+    fn test_stats_parse_max_threads() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.threads_max, 12);
+    }
+
+    #[test]
+    fn test_stats_parse_threads_timeout() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.threads_idle_timeout_secs, 30);
+    }
+
+    #[test]
+    fn test_stats_parse_queue() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.queue, 0);
+    }
+
+    #[test]
+    fn test_stats_parse_mem_heap() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.mem_heap, "9.082M".to_string());
+    }
+
+    #[test]
+    fn test_stats_parse_mem_mmap() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.mem_mmap, "0.000M".to_string());
+    }
+
+    #[test]
+    fn test_stats_parse_mem_used() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.mem_used, "6.902M".to_string());
+    }
+
+    #[test]
+    fn test_stats_parse_mem_free() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.mem_free, "2.184M".to_string());
+    }
+
+    #[test]
+    fn test_stats_parse_mem_releaseable() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.mem_releasable, "0.129M".to_string());
+    }
+
+    #[test]
+    fn test_stats_parse_pools_used() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.pools_used, "565.979M".to_string());
+    }
+
+    #[test]
+    fn test_stats_parse_pools_total() {
+        let parsed = response::ClamStats::parse(STATS_STRING).unwrap();
+        assert_eq!(parsed.pools_total, "565.999M".to_string());
+    }
+}

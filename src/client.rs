@@ -213,3 +213,24 @@ fn build(ip: &str, port: u16, timeout: Option<Duration>) -> ClamResult<ClamClien
 
     Ok(ClamClient { timeout, socket })
 }
+
+mod test {
+    use client;
+
+    #[test]
+    fn test_client_no_timeout() {
+        let cclient = client::ClamClient::new("127.0.0.1", 3310).unwrap();
+        let socket_addr = ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
+        assert_eq!(cclient.socket, socket_addr);
+        assert_eq!(cclient.timeout, None);
+    }
+
+
+    #[test]
+    fn test_client_with_timeout() {
+        let cclient = client::ClamClient::new_with_timeout("127.0.0.1", 3310, 60).unwrap();
+        let socket_addr = ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
+        assert_eq!(cclient.socket, socket_addr);
+        assert_eq!(cclient.timeout, Some(::std::time::Duration::from_secs(60)));
+    }
+}
