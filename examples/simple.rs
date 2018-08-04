@@ -13,7 +13,7 @@ fn main() {
                 match result {
                     ClamScanResult::Ok => println!("File {} is OK!", path),
                     ClamScanResult::Found(location, virus) => {
-                        println!("Found virus: '{}' in {}", virus, location)
+                        println!("\tFound virus: '{}' in {}", virus, location)
                     }
                     ClamScanResult::Error(err) => println!("Received error from ClamAV: {}", err),
                 }
