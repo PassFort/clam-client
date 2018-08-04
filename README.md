@@ -11,6 +11,8 @@ use clam_client::client::ClamClient;
 use clam_client::response::ClamScanResult;
 
 fn main() {
+    let client = ClamClient::new("127.0.0.1", 3310).unwrap();
+    
     if let Ok(results) = client.scan_path("/tmp/", true) {
         for scan_result in results.iter() {
             match scan_result {
