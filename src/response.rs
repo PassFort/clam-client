@@ -211,6 +211,13 @@ mod tests {
         assert_eq!(parsed[0], response::ClamScanResult::Found("/some/file".to_string(), "SOME_BAD-Virus".to_string()));
     }
 
+    #[test]
+    fn test_result_parse_multi_found() {
+        let raw = "/some/file: SOME_BAD-Virus FOUND\0/some/other_file: SOME_V*BAD-Virus FOUND\0";
+        let parsed = response::ClamScanResult::parse(raw);
+        assert_eq!(parsed[0], response::ClamScanResult::Found("/some/file".to_string(), "SOME_BAD-Virus".to_string()));
+        assert_eq!(parsed[1], response::ClamScanResult::Found("/some/other_file".to_string(), "SOME_V*BAD-Virus".to_string()));
+    }
 
     #[test]
     fn test_result_parse_error() {
