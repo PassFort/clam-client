@@ -26,6 +26,7 @@ fn main() {
 
 ## Todo
 
+- Add unit tests!!!
 - Add support for sessions: IDSESSION / END
 - Decide whether to implement VERSIONCOMMANDS
 - Decide whether to implement FILDES
