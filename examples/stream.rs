@@ -13,7 +13,9 @@ fn main() {
         match client.scan_stream(file) {
             Ok(result) => match result {
                 ClamScanResult::Ok => println!("File {} is OK!", path),
-                ClamScanResult::Found(virus) => println!("Found virus: '{}' in {}", virus, path),
+                ClamScanResult::Found(location, virus) => {
+                    println!("Found virus: '{}' in {}", virus, location)
+                }
                 ClamScanResult::Error(err) => println!("Received error from ClamAV: {}", err),
             },
             Err(e) => println!("A network error occurred whilst talking to ClamAV:\n{}", e),
