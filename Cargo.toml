@@ -10,7 +10,7 @@ homepage = "https://gitlab.com/AviateX14/clam-client"
 repository = "https://gitlab.com/AviateX14/clam-client"
 
 [badges]
-gitlab = { repository = "https://gitlab.com/AviateX14/clam-client", branch = "master" }
+gitlab = { repository = "AviateX14/clam-client", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]

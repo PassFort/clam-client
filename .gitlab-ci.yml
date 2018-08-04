@@ -12,7 +12,7 @@ test:
 pages:
   stage: doc
   script:
-    - cargo doc --no-deps
+    - cargo doc --color always --no-deps --all
     - mv target/doc public
     - echo '<meta http-equiv="refresh" content="0; /clam-client/clam_client">' > public/index.html
   artifacts:
