@@ -1,7 +1,13 @@
 image: 'rust:latest'
 
 stages:
+  - test
   - doc
+
+test:
+  stage: test
+  script:
+    - cargo test --verbose
 
 pages:
   stage: doc
