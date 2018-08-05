@@ -9,35 +9,54 @@ use error::ClamError;
 use std::str::FromStr;
 
 /// `ClamStats` provides all of the metrics that Clam provides via the `STATS` command
-/// as at version 0.100.
-#[derive(Debug)]
+/// as at version 0.100. 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub struct ClamStats {
+    /// The number of `pools` available to ClamAV
     pub pools: u64,
+    /// The state of the responding Clam Daemon
     pub state: String,
+    /// The numbe of active threads owned by the Clam Daemon
     pub threads_live: u64,
+    /// The number of idle threads owned by the Clam Daemon
     pub threads_idle: u64,
+    /// The maximum number of threads the Clam Daemon can spawn
     pub threads_max: u64,
+    /// The timeout (seconds) before a thread is determined to be idle
     pub threads_idle_timeout_secs: u64,
+    /// The number of items in the queue awaiting processing
     pub queue: u64,
+    /// Total memory allocated to the heap
     pub mem_heap: String,
+    /// Ammount of mmap'd memory used
     pub mem_mmap: String,
+    /// Total memory used by the daemon
     pub mem_used: String,
+    /// Total memory available to the daemon not in use
     pub mem_free: String,
+    /// Total memory re
     pub mem_releasable: String,
+    /// Total number of pools in use by the daemon
     pub pools_used: String,
+    /// Total number of pools available to the daemon
     pub pools_total: String,
 }
 
 /// `ClamVersion` provdes all of the Clam meta-information provided by the `VERSION` command
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub struct ClamVersion {
+    /// The name and version number of the responding daemon
     pub version_tag: String,
+    /// The build number of the responding daemon
     pub build_number: u64,
+    /// The release date for the responding daemon
     pub release_date: DateTime<Utc>,
 }
 
 /// `ClamScanResult` Provides a `match` 'friendly' interface for receiving the result of a scan.
-#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum ClamScanResult {
     /// An `Ok` response means that Clam found no virus in the given file/directory.
     Ok,

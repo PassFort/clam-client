@@ -13,8 +13,13 @@ repository = "https://gitlab.com/AviateX14/clam-client"
 gitlab = { repository = "AviateX14/clam-client", branch = "master" }
 maintenance = { status = "actively-developed" }
 
+[features]
+serde-rs = ["serde"]
+
 [dependencies]
 failure = "0.1.1"
 chrono = "0.4"
 nom = "4.0.0"
 byteorder = "1"
+
+serde = { version = "1.0.70", optional = true, features = ["derive"] }
