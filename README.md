@@ -12,7 +12,7 @@ use clam_client::response::ClamScanResult;
 
 fn main() {
     let client = ClamClient::new("127.0.0.1", 3310).unwrap();
-    
+
     if let Ok(results) = client.scan_path("/tmp/", true) {
         for scan_result in results.iter() {
             match scan_result {
@@ -26,9 +26,27 @@ fn main() {
 }
 ```
 
+Streaming is also supported:
+
+```rust
+let client = ClamClient::new("127.0.0.1", 3310).unwrap();
+let file = File::open(some_path).unwrap();
+
+match client.scan_stream(file) {
+    Ok(result) => match result {
+        ClamScanResult::Ok => println!("File {} is OK!", some_path,
+        ClamScanResult::Found(_, virus) => {
+            println!("Found virus: '{}' in {}", virus, some_path)
+        }
+        ClamScanResult::Error(err) => println!("Received error from ClamAV: {}", err),
+    },
+    Err(e) => println!("A network error occurred whilst talking to ClamAV:\n{}", e),
+}
+
+```
+
 ## Todo
 
-- Add unit tests!!!
 - Add support for sessions: IDSESSION / END
 - Decide whether to implement VERSIONCOMMANDS
 - Decide whether to implement FILDES
