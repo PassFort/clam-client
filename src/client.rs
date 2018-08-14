@@ -28,12 +28,51 @@ pub struct ClamClient {
 impl ClamClient {
     /// Creates a new instance of `ClamClient` with no connect timeout, commands issued from this
     /// client will indefinitely block if ClamD becomes unavailable.
+    /// 
+    /// *Arguments*
+    /// 
+    /// - `ip`: The IP address to connect to
+    /// - `port`: The port to connect to
+    /// 
+    /// *Example*
+    /// 
+    /// ```rust
+    /// extern crate clam_client;
+    /// 
+    /// use clam_client::client::ClamClient;
+    /// 
+    /// fn main() {
+    ///     if let Ok(client) = ClamClient::new("127.0.0.1", 3310) {
+    ///         println!("{:?}", client.version());
+    ///     }
+    /// }
+    /// ```
     pub fn new(ip: &str, port: u16) -> ClamResult<ClamClient> {
         build(ip, port, None)
     }
 
     /// Creates a new instance of `ClamClient` with a connection timeout (in seconds). Any command 
     /// issued from this client will error after `timeout_secs` if ClamD is unavailable.
+    /// 
+    /// *Arguments*
+    /// 
+    /// - `ip`: The IP address to connect to
+    /// - `port`: The port to connect to
+    /// - `timeout_secs`: The number of seconds to wait before aborting the connection
+    /// 
+    /// *Example*
+    /// 
+    /// ```rust
+    /// extern crate clam_client;
+    /// 
+    /// use clam_client::client::ClamClient;
+    /// 
+    /// fn main() {
+    ///     if let Ok(client) = ClamClient::new_with_timeout("127.0.0.1", 3310, 10) {
+    ///         println!("{:?}", client.version());
+    ///     }
+    /// }
+    /// ```
     pub fn new_with_timeout(ip: &str, port: u16, timeout_secs: u64) -> ClamResult<ClamClient> {
         build(ip, port, Some(Duration::from_secs(timeout_secs)))
     }
@@ -68,6 +107,30 @@ impl ClamClient {
     /// 
     /// - `path`: The path to scan, this is a path that is on the ClamD server, or that it has access to.
     /// - `continue_on_virus`: If true, instructs ClamD to continue scanning even after it detects a virus.
+    /// 
+    /// *Example*
+    /// 
+    /// ```rust
+    /// extern crate clam_client;
+    /// 
+    /// use clam_client::client::ClamClient;
+    /// use clam_client::response::ClamScanResult;
+    ///
+    /// fn main() {
+    ///     let client = ClamClient::new("127.0.0.1", 3310).unwrap();
+    ///
+    ///     if let Ok(scan_results) = client.scan_path("/tmp/", true){
+    ///         for result in scan_results.iter() {
+    ///             match result {
+    ///                 ClamScanResult::Found(location, virus) => {
+    ///                     println!("Found virus: '{}' in {}", virus, location)
+    ///                 },
+    ///                 _ => {},
+    ///             }
+    ///         }
+    ///     }
+    /// }
+    /// ```
     pub fn scan_path(&self, path: &str, continue_on_virus: bool) -> ClamResult<Vec<ClamScanResult>> {
         let result = if continue_on_virus {
             self.send_command(&format!("zCONTSCAN {}\0", path).into_bytes())?
@@ -95,6 +158,32 @@ impl ClamClient {
     /// of 4096 bytes and then written to the ClamD instance. This object must not exceed the ClamD
     /// max stream size, else the socket will be forcibly closed - in which case an error will be reutned
     /// from this function.
+    /// 
+    /// *Example*
+    /// 
+    /// ```rust
+    /// extern crate clam_client;
+    /// 
+    /// use clam_client::client::ClamClient;
+    /// use clam_client::response::ClamScanResult;
+    /// use std::fs::File;
+    ///
+    /// fn main() {
+    ///     let client = ClamClient::new("127.0.0.1", 3310).unwrap();
+    ///     let file = File::open("/etc/hosts").unwrap();
+    ///
+    ///     match client.scan_stream(file) {
+    ///         Ok(result) => match result {
+    ///             ClamScanResult::Ok => println!("File /etc/hostname is OK!"),
+    ///             ClamScanResult::Found(location, virus) => {
+    ///                 println!("Found virus: '{}' in {}", virus, location)
+    ///             },
+    ///             ClamScanResult::Error(err) => println!("Received error from ClamAV: {}", err),
+    ///         },
+    ///         Err(e) => println!("A network error occurred whilst talking to ClamAV:\n{}", e),
+    ///     }
+    /// }
+    /// ```
     pub fn scan_stream<T: Read>(&self, stream: T) -> ClamResult<ClamScanResult> {
         let mut reader = BufReader::new(stream);
         let mut buffer = [0; 4096];
@@ -145,8 +234,8 @@ impl ClamClient {
     /// from ClamD. 
     /// 
     /// *Note*: Since this shuts down the ClamD instance, it will ensure all future calls to 
-    /// this or any other `ClamClient` return errors.
-    pub fn shutdown(&self) -> ClamResult<String> {
+    /// this or any other `ClamClient` return errors, as such, thus function consumes the calling client.
+    pub fn shutdown(self) -> ClamResult<String> {
         self.send_command(b"zSHUTDOWN\0")
     }
 
@@ -214,12 +303,13 @@ fn build(ip: &str, port: u16, timeout: Option<Duration>) -> ClamResult<ClamClien
     Ok(ClamClient { timeout, socket })
 }
 
+#[cfg(test)]
 mod test {
-    use client;
+    use client::ClamClient;
 
     #[test]
     fn test_client_no_timeout() {
-        let cclient = client::ClamClient::new("127.0.0.1", 3310).unwrap();
+        let cclient = ClamClient::new("127.0.0.1", 3310).unwrap();
         let socket_addr = ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
         assert_eq!(cclient.socket, socket_addr);
         assert_eq!(cclient.timeout, None);
@@ -228,7 +318,7 @@ mod test {
 
     #[test]
     fn test_client_with_timeout() {
-        let cclient = client::ClamClient::new_with_timeout("127.0.0.1", 3310, 60).unwrap();
+        let cclient = ClamClient::new_with_timeout("127.0.0.1", 3310, 60).unwrap();
         let socket_addr = ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
         assert_eq!(cclient.socket, socket_addr);
         assert_eq!(cclient.timeout, Some(::std::time::Duration::from_secs(60)));

@@ -7,7 +7,7 @@
 //! Whilst this may not be the most optimal approach, and is subject to change, it does make
 //! client side handling and result propogation very simple.
 
-
+/// `ClamError` is the primary interface for all errors emitted by `clam_client`.
 #[derive(Debug, Fail)]
 pub enum ClamError {
     /// Generated when an invalid IP address is supplied to `ClamClient::new(..)`

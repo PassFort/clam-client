@@ -1,9 +1,9 @@
 [package]
 name = "clam-client"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Joseph Brailsford <joe@brailsford.xyz>"]
 description = "A simple Rust implementation for talking to ClamD"
-keywords = ["ClamAV", "ClamD", "Antivirus", "File Scanning"]
+keywords = ["ClamAV", "ClamD", "Antivirus"]
 readme = "README.md"
 license = "MIT"
 homepage = "https://gitlab.com/AviateX14/clam-client"
@@ -13,8 +13,13 @@ repository = "https://gitlab.com/AviateX14/clam-client"
 gitlab = { repository = "AviateX14/clam-client", branch = "master" }
 maintenance = { status = "actively-developed" }
 
+[features]
+serde-rs = ["serde"]
+
 [dependencies]
 failure = "0.1.1"
 chrono = "0.4"
 nom = "4.0.0"
 byteorder = "1"
+
+serde = { version = "1.0.70", optional = true, features = ["derive"] }

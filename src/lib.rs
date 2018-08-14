@@ -1,3 +1,5 @@
+#![deny(missing_docs)]
+
 //! # clam_client - a client implementation for ClamAV written in Rust. 
 //! `clam_client`, provides a simple interface to all basic ClamAV functionality, currently 
 //! the only thing missing is sessions/multi threaded scanning, which may or may not be added
@@ -23,6 +25,10 @@
 //! }
 //! ```
 //! 
+
+#[cfg(feature = "serde")]
+#[macro_use]
+extern crate serde;
 
 #[macro_use]
 extern crate failure;
