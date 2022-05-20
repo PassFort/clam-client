@@ -2,6 +2,8 @@
 
 `clam-client` is a simple rust interface for talking to a ClamAV server over a TCP socket.
 
+Forked from https://gitlab.com/AviateX14/clam-client as it seems unmaintained.
+
 Example:
 
 ```rust
