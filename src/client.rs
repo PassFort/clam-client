@@ -3,7 +3,7 @@
 
 use byteorder::{BigEndian, ByteOrder};
 use error::ClamError;
-use response::{ClamStats, ClamVersion, ClamScanResult};
+use response::{ClamScanResult, ClamStats, ClamVersion};
 use std::io::{BufReader, Read, Write};
 use std::net::IpAddr;
 use std::net::SocketAddr;
@@ -16,8 +16,8 @@ pub type ClamResult<T> = ::std::result::Result<T, ClamError>;
 
 /// `ClamClient` is the crux of the crate, it retains information about what socket to connect
 /// to, thus that it can reconnect, and what timeout (if any) to use when connecting.
-/// 
-/// *Note:* Future versions may move `timeout` to be use in command operations as well as 
+///
+/// *Note:* Future versions may move `timeout` to be use in command operations as well as
 /// when connecting. However since the latter is so variable, this may require a different - or even
 /// per call - timeout value.
 pub struct ClamClient {
@@ -28,19 +28,19 @@ pub struct ClamClient {
 impl ClamClient {
     /// Creates a new instance of `ClamClient` with no connect timeout, commands issued from this
     /// client will indefinitely block if ClamD becomes unavailable.
-    /// 
+    ///
     /// *Arguments*
-    /// 
+    ///
     /// - `ip`: The IP address to connect to
     /// - `port`: The port to connect to
-    /// 
+    ///
     /// *Example*
-    /// 
+    ///
     /// ```rust
     /// extern crate clam_client;
-    /// 
+    ///
     /// use clam_client::client::ClamClient;
-    /// 
+    ///
     /// fn main() {
     ///     if let Ok(client) = ClamClient::new("127.0.0.1", 3310) {
     ///         println!("{:?}", client.version());
@@ -51,22 +51,22 @@ impl ClamClient {
         build(ip, port, None)
     }
 
-    /// Creates a new instance of `ClamClient` with a connection timeout (in seconds). Any command 
+    /// Creates a new instance of `ClamClient` with a connection timeout (in seconds). Any command
     /// issued from this client will error after `timeout_secs` if ClamD is unavailable.
-    /// 
+    ///
     /// *Arguments*
-    /// 
+    ///
     /// - `ip`: The IP address to connect to
     /// - `port`: The port to connect to
     /// - `timeout_secs`: The number of seconds to wait before aborting the connection
-    /// 
+    ///
     /// *Example*
-    /// 
+    ///
     /// ```rust
     /// extern crate clam_client;
-    /// 
+    ///
     /// use clam_client::client::ClamClient;
-    /// 
+    ///
     /// fn main() {
     ///     if let Ok(client) = ClamClient::new_with_timeout("127.0.0.1", 3310, 10) {
     ///         println!("{:?}", client.version());
@@ -77,7 +77,7 @@ impl ClamClient {
         build(ip, port, Some(Duration::from_secs(timeout_secs)))
     }
 
-    /// Implements the ClamD `PING` command, returns true if ClamD responds with `PONG`, or false if 
+    /// Implements the ClamD `PING` command, returns true if ClamD responds with `PONG`, or false if
     /// there was an error, or ClamD did not respond with `PONG`.
     pub fn ping(&self) -> bool {
         match self.send_command(b"zPING\0") {
@@ -93,26 +93,25 @@ impl ClamClient {
         ClamVersion::parse(resp)
     }
 
-
-    /// Implements the ClamD `RELOAD` command, returns the state of the request as a `String` from 
+    /// Implements the ClamD `RELOAD` command, returns the state of the request as a `String` from
     /// ClamD, or a network error if the command failed.
     pub fn reload(&self) -> ClamResult<String> {
         self.send_command(b"zRELOAD\0")
     }
 
     /// Implements the ClamD `SCAN` and `CONTSCAN` commands, returns a `Vec<ClamScanResult>` if the command
-    /// was successful, or a network error if the command failed. 
-    /// 
+    /// was successful, or a network error if the command failed.
+    ///
     /// *Arguments:*
-    /// 
+    ///
     /// - `path`: The path to scan, this is a path that is on the ClamD server, or that it has access to.
     /// - `continue_on_virus`: If true, instructs ClamD to continue scanning even after it detects a virus.
-    /// 
+    ///
     /// *Example*
-    /// 
+    ///
     /// ```rust
     /// extern crate clam_client;
-    /// 
+    ///
     /// use clam_client::client::ClamClient;
     /// use clam_client::response::ClamScanResult;
     ///
@@ -131,7 +130,11 @@ impl ClamClient {
     ///     }
     /// }
     /// ```
-    pub fn scan_path(&self, path: &str, continue_on_virus: bool) -> ClamResult<Vec<ClamScanResult>> {
+    pub fn scan_path(
+        &self,
+        path: &str,
+        continue_on_virus: bool,
+    ) -> ClamResult<Vec<ClamScanResult>> {
         let result = if continue_on_virus {
             self.send_command(&format!("zCONTSCAN {}\0", path).into_bytes())?
         } else {
@@ -142,7 +145,7 @@ impl ClamClient {
     }
 
     /// Implements the ClamD `MULTISCAN` command which allows the ClamD instance to perform
-    /// multi-threaded scanning. Returns a `Vec<ClamScanResult>` if the command wassuccessful, 
+    /// multi-threaded scanning. Returns a `Vec<ClamScanResult>` if the command wassuccessful,
     /// or a network error if the command failed.
     pub fn multiscan_path(&self, path: &str) -> ClamResult<Vec<ClamScanResult>> {
         let result = self.send_command(&format!("zSCAN {}\0", path).into_bytes())?;
@@ -151,19 +154,19 @@ impl ClamClient {
 
     /// Implements the ClamD `INSTREAM` command, which allows the caller to stream a file to the ClamD
     /// instance. Retuns a `ClamScanResult` if the command was successful.
-    /// 
+    ///
     /// *Arguments*:
-    /// 
+    ///
     /// - `stream`: The object to be scanned, this must implement `Read`, it will be read into a buffer
     /// of 4096 bytes and then written to the ClamD instance. This object must not exceed the ClamD
     /// max stream size, else the socket will be forcibly closed - in which case an error will be reutned
     /// from this function.
-    /// 
+    ///
     /// *Example*
-    /// 
+    ///
     /// ```rust
     /// extern crate clam_client;
-    /// 
+    ///
     /// use clam_client::client::ClamClient;
     /// use clam_client::response::ClamScanResult;
     /// use std::fs::File;
@@ -194,7 +197,7 @@ impl ClamClient {
 
         while let Ok(bytes_read) = reader.read(&mut buffer) {
             if bytes_read > ::std::u32::MAX as usize {
-                return Err(ClamError::InvalidDataLengthError(bytes_read))
+                return Err(ClamError::InvalidDataLengthError(bytes_read));
             }
 
             BigEndian::write_u32(&mut length_buffer, bytes_read as u32);
@@ -213,14 +216,14 @@ impl ClamClient {
         match connection.read_to_string(&mut result) {
             Ok(_) => {
                 let scan_result = ClamScanResult::parse(&result);
-                
+
                 if let Some(singular) = scan_result.first() {
                     Ok(singular.clone())
                 } else {
                     Err(ClamError::InvalidData(result))
                 }
             }
-            Err(e) => Err(ClamError::ConnectionError(e))
+            Err(e) => Err(ClamError::ConnectionError(e)),
         }
     }
 
@@ -230,10 +233,10 @@ impl ClamClient {
         ClamStats::parse(&resp)
     }
 
-    /// Implements the ClamD `SHUTDOWN` command, and returns the status message - if any - 
-    /// from ClamD. 
-    /// 
-    /// *Note*: Since this shuts down the ClamD instance, it will ensure all future calls to 
+    /// Implements the ClamD `SHUTDOWN` command, and returns the status message - if any -
+    /// from ClamD.
+    ///
+    /// *Note*: Since this shuts down the ClamD instance, it will ensure all future calls to
     /// this or any other `ClamClient` return errors, as such, thus function consumes the calling client.
     pub fn shutdown(self) -> ClamResult<String> {
         self.send_command(b"zSHUTDOWN\0")
@@ -242,9 +245,9 @@ impl ClamClient {
     /// Simple reusable wrapper function to send a basic command to the ClamD instance and obtain
     /// a `ClamResult` that can propogate up the error chain. This is responsible for creating,
     /// writing to, and managing the connection in all 'one-shot' operations.
-    /// 
+    ///
     /// *Arguments*:
-    /// 
+    ///
     /// - `command`: The command to issue in byte form.
     fn send_command(&self, command: &[u8]) -> ClamResult<String> {
         let mut connection = self.connect()?;
@@ -261,12 +264,12 @@ impl ClamClient {
         }
     }
 
-    /// Simple reusable wrapper function for writing a byte stream to an established connection, 
+    /// Simple reusable wrapper function for writing a byte stream to an established connection,
     /// returns the lengh of the data written if successful. This is especially useful for writing
     /// file streams.
     ///  
     /// *Arguments*:
-    /// 
+    ///
     /// - `connection`: The established connection to write to.
     /// - `data`: The byte stream to send.
     fn connection_write(&self, mut connection: &TcpStream, data: &[u8]) -> ClamResult<usize> {
@@ -310,16 +313,17 @@ mod test {
     #[test]
     fn test_client_no_timeout() {
         let cclient = ClamClient::new("127.0.0.1", 3310).unwrap();
-        let socket_addr = ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
+        let socket_addr =
+            ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
         assert_eq!(cclient.socket, socket_addr);
         assert_eq!(cclient.timeout, None);
     }
 
-
     #[test]
     fn test_client_with_timeout() {
         let cclient = ClamClient::new_with_timeout("127.0.0.1", 3310, 60).unwrap();
-        let socket_addr = ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
+        let socket_addr =
+            ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
         assert_eq!(cclient.socket, socket_addr);
         assert_eq!(cclient.timeout, Some(::std::time::Duration::from_secs(60)));
     }

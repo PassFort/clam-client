@@ -1,9 +1,9 @@
 //! Simple error interface for clam_client. This simply wraps other common error types, the reason
 //! for this is two-fold:
-//! 
+//!
 //! * Enable propogation of errors all the way up the chain.
 //! * Provide one simple error handling mechanism to the caller.
-//! 
+//!
 //! Whilst this may not be the most optimal approach, and is subject to change, it does make
 //! client side handling and result propogation very simple.
 
@@ -30,5 +30,5 @@ pub enum ClamError {
     DateParseError(::chrono::format::ParseError),
     /// Genarated when the data length written to the ClamD socket exceeds 2^32
     #[fail(display = "Invalid data length sent: {}", _0)]
-    InvalidDataLengthError(usize)
+    InvalidDataLengthError(usize),
 }

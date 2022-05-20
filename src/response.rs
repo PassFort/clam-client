@@ -9,7 +9,7 @@ use error::ClamError;
 use std::str::FromStr;
 
 /// `ClamStats` provides all of the metrics that Clam provides via the `STATS` command
-/// as at version 0.100. 
+/// as at version 0.100.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct ClamStats {
@@ -160,9 +160,9 @@ named!(parse_stats<&str, ClamStats>,
         state: map_res!(take_until_and_consume!("\nTHREADS: live "), FromStr::from_str) >>
         threads_live: map_res!(take_until_and_consume!("  idle "), u64::from_str) >>
         threads_idle: map_res!(take_until_and_consume!(" max "), u64::from_str) >>
-        threads_max: map_res!(take_until_and_consume!(" idle-timeout "), u64::from_str) >> 
+        threads_max: map_res!(take_until_and_consume!(" idle-timeout "), u64::from_str) >>
         threads_idle_timeout_secs: map_res!(take_until_and_consume!("\nQUEUE: "), u64::from_str) >>
-        queue: map_res!(take_until_and_consume!(" items\n"), u64::from_str) >> 
+        queue: map_res!(take_until_and_consume!(" items\n"), u64::from_str) >>
         take_until_and_consume!("heap ") >>
         mem_heap: map_res!(take_until_and_consume!(" mmap "), FromStr::from_str) >>
         mem_mmap: map_res!(take_until_and_consume!(" used "), FromStr::from_str) >>
