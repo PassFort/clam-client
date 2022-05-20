@@ -90,7 +90,7 @@ impl ClamScanResult {
 
                 if s.contains("FOUND") {
                     let mut split = s.split_whitespace();
-                    let path: String = split.next().unwrap().trim_right_matches(':').to_owned();
+                    let path: String = split.next().unwrap().trim_end_matches(':').to_owned();
                     let virus = split
                         .take_while(|s| !s.starts_with("FOUND"))
                         .collect::<String>();
@@ -110,7 +110,7 @@ impl ClamVersion {
     /// `version tag/build no/publish datetime`
     pub fn parse(v_string: String) -> ClamResult<Self> {
         let parts: Vec<String> = v_string
-            .trim_right_matches('\0')
+            .trim_end_matches('\0')
             .split('/')
             .map(|s| s.to_owned())
             .collect();
