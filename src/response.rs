@@ -3,9 +3,9 @@
 //!
 //! All structs and enums derive `Debug` for ease of client send debugging and development.
 
+use crate::client::ClamResult;
+use crate::error::ClamError;
 use chrono::{DateTime, TimeZone, Utc};
-use client::ClamResult;
-use error::ClamError;
 use std::str::FromStr;
 
 /// `ClamStats` provides all of the metrics that Clam provides via the `STATS` command
@@ -195,8 +195,8 @@ named!(parse_stats<&str, ClamStats>,
 
 #[cfg(test)]
 mod tests {
+    use crate::response;
     use chrono::prelude::*;
-    use response;
 
     static VERSION_STRING: &'static str = "ClamAV 0.100.0/24802/Wed Aug  1 08:43:37 2018\0";
     static STATS_STRING: &'static str = "POOLS: 1\n\nSTATE: VALID PRIMARY\nTHREADS: live 1  idle 0 max 12 idle-timeout 30\nQUEUE: 0 items\n\tSTATS 0.000394\n\nMEMSTATS: heap 9.082M mmap 0.000M used 6.902M free 2.184M releasable 0.129M pools 1 pools_used 565.979M pools_total 565.999M\nEND\0";

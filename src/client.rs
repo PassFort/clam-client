@@ -1,9 +1,9 @@
 //! `ClamClient` provides the bridge between the Rust code and the ClamD socket, and implements
 //! most Clam commands in a Rust idiomatic interface.
 
+use crate::error::ClamError;
+use crate::response::{ClamScanResult, ClamStats, ClamVersion};
 use byteorder::{BigEndian, ByteOrder};
-use error::ClamError;
-use response::{ClamScanResult, ClamStats, ClamVersion};
 use std::io::{BufReader, Read, Write};
 use std::net::IpAddr;
 use std::net::SocketAddr;
@@ -12,7 +12,7 @@ use std::time::Duration;
 
 /// `ClamResult` is a simple wrapper used for all operations, this makes it simple to handle
 /// from the callers side.
-pub type ClamResult<T> = ::std::result::Result<T, ClamError>;
+pub type ClamResult<T> = Result<T, ClamError>;
 
 /// `ClamClient` is the crux of the crate, it retains information about what socket to connect
 /// to, thus that it can reconnect, and what timeout (if any) to use when connecting.
@@ -308,7 +308,7 @@ fn build(ip: &str, port: u16, timeout: Option<Duration>) -> ClamResult<ClamClien
 
 #[cfg(test)]
 mod test {
-    use client::ClamClient;
+    use crate::client::ClamClient;
 
     #[test]
     fn test_client_no_timeout() {

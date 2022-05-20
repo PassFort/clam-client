@@ -1,5 +1,6 @@
 [package]
 name = "clam-client"
+edition = "2021"
 version = "0.1.1"
 authors = ["Joseph Brailsford <joe@brailsford.xyz>"]
 description = "A simple Rust implementation for talking to ClamD"
@@ -18,7 +19,7 @@ default = []
 serde-rs = ["serde"]
 
 [dependencies]
-failure = "0.1.1"
+thiserror = "1.0.31"
 chrono = "0.4"
 nom = "4.0.0"
 byteorder = "1"

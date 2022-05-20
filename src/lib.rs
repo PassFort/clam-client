@@ -31,12 +31,7 @@
 extern crate serde;
 
 #[macro_use]
-extern crate failure;
-#[macro_use]
 extern crate nom;
-
-extern crate byteorder;
-extern crate chrono;
 
 pub mod client;
 pub mod error;
