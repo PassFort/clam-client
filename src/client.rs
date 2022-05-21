@@ -85,8 +85,8 @@ impl ClamClient {
         }
     }
 
-    /// Implements the ClamD `VERSION` conmand, returns a struct of `ClamVersion` if successful,
-    /// or an error if processing the respnose failed, or if there was an issue talking to ClamD.
+    /// Implements the ClamD `VERSION` command, returns a struct of `ClamVersion` if successful,
+    /// or an error if processing the response failed, or if there was an issue talking to ClamD.
     pub fn version(&self) -> ClamResult<ClamVersion> {
         let resp = self.send_command(b"zVERSION\0")?;
         ClamVersion::parse(resp)
@@ -144,7 +144,7 @@ impl ClamClient {
     }
 
     /// Implements the ClamD `MULTISCAN` command which allows the ClamD instance to perform
-    /// multi-threaded scanning. Returns a `Vec<ClamScanResult>` if the command wassuccessful,
+    /// multi-threaded scanning. Returns a `Vec<ClamScanResult>` if the command was successful,
     /// or a network error if the command failed.
     pub fn multiscan_path(&self, path: &str) -> ClamResult<Vec<ClamScanResult>> {
         let result = self.send_command(&format!("zSCAN {}\0", path).into_bytes())?;
@@ -152,13 +152,13 @@ impl ClamClient {
     }
 
     /// Implements the ClamD `INSTREAM` command, which allows the caller to stream a file to the ClamD
-    /// instance. Retuns a `ClamScanResult` if the command was successful.
+    /// instance. Returns a `ClamScanResult` if the command was successful.
     ///
     /// *Arguments*:
     ///
     /// - `stream`: The object to be scanned, this must implement `Read`, it will be read into a buffer
     /// of 4096 bytes and then written to the ClamD instance. This object must not exceed the ClamD
-    /// max stream size, else the socket will be forcibly closed - in which case an error will be reutned
+    /// max stream size, else the socket will be forcibly closed - in which case an error will be returned
     /// from this function.
     ///
     /// *Example*
@@ -240,7 +240,7 @@ impl ClamClient {
     }
 
     /// Simple reusable wrapper function to send a basic command to the ClamD instance and obtain
-    /// a `ClamResult` that can propogate up the error chain. This is responsible for creating,
+    /// a `ClamResult` that can propagate up the error chain. This is responsible for creating,
     /// writing to, and managing the connection in all 'one-shot' operations.
     ///
     /// *Arguments*:
@@ -262,7 +262,7 @@ impl ClamClient {
     }
 
     /// Simple reusable wrapper function for writing a byte stream to an established connection,
-    /// returns the lengh of the data written if successful. This is especially useful for writing
+    /// returns the length of the data written if successful. This is especially useful for writing
     /// file streams.
     ///  
     /// *Arguments*:
@@ -310,8 +310,7 @@ mod test {
     #[test]
     fn test_client_no_timeout() {
         let cclient = ClamClient::new("127.0.0.1", 3310).unwrap();
-        let socket_addr =
-            ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
+        let socket_addr = std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
         assert_eq!(cclient.socket, socket_addr);
         assert_eq!(cclient.timeout, None);
     }
@@ -319,9 +318,8 @@ mod test {
     #[test]
     fn test_client_with_timeout() {
         let cclient = ClamClient::new_with_timeout("127.0.0.1", 3310, 60).unwrap();
-        let socket_addr =
-            ::std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
+        let socket_addr = std::net::SocketAddr::new(::std::net::IpAddr::from([127, 0, 0, 1]), 3310);
         assert_eq!(cclient.socket, socket_addr);
-        assert_eq!(cclient.timeout, Some(::std::time::Duration::from_secs(60)));
+        assert_eq!(cclient.timeout, Some(std::time::Duration::from_secs(60)));
     }
 }

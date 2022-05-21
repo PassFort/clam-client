@@ -1,4 +1,4 @@
-//! The `response` module is responsibe for parsing the responses issued to use
+//! The `response` module is responsible for parsing the responses issued to use
 //! by ClamAV. To do so, it relies on two external crates, namely, `nom` and `chrono`.
 //!
 //! All structs and enums derive `Debug` for ease of client send debugging and development.
@@ -17,7 +17,7 @@ pub struct ClamStats {
     pub pools: u64,
     /// The state of the responding Clam Daemon
     pub state: String,
-    /// The numbe of active threads owned by the Clam Daemon
+    /// The number of active threads owned by the Clam Daemon
     pub threads_live: u64,
     /// The number of idle threads owned by the Clam Daemon
     pub threads_idle: u64,
@@ -29,7 +29,7 @@ pub struct ClamStats {
     pub queue: u64,
     /// Total memory allocated to the heap
     pub mem_heap: String,
-    /// Ammount of mmap'd memory used
+    /// Amount of mmap'd memory used
     pub mem_mmap: String,
     /// Total memory used by the daemon
     pub mem_used: String,
@@ -43,7 +43,7 @@ pub struct ClamStats {
     pub pools_total: String,
 }
 
-/// `ClamVersion` provdes all of the Clam meta-information provided by the `VERSION` command
+/// `ClamVersion` provides all of the Clam meta-information provided by the `VERSION` command
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct ClamVersion {
     /// The name and version number of the responding daemon
@@ -74,7 +74,7 @@ pub enum ClamScanResult {
 impl ClamScanResult {
     /// `ClamScanResult::parse` takes a Clam scan result string and parses into into a `Vec<ClamScanResult`.
     /// A vec must be used because Clam may scan multiple files in one request, or may encounter
-    /// multuple errors.
+    /// multiple errors.
     ///
     /// *Note*: If performing a stream scan, the result will be converted to a single `ClamScanResult` by
     /// the caller.
@@ -144,7 +144,7 @@ impl ClamStats {
     /// Given that this is likely to be the most volatile area of returned data, it is likely
     /// that this will fail across different versions. This parses the data expected as of
     /// version 0.100.0. If it cannot parse the data, then the result is returned in its
-    /// raw form insude `ClamError::InvalidData`.
+    /// raw form inside `ClamError::InvalidData`.
     pub fn parse(s_string: &str) -> ClamResult<Self> {
         match parse_stats(s_string) {
             Ok(v) => Ok(v.1),
