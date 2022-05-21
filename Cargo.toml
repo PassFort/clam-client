@@ -22,6 +22,5 @@ serde-rs = ["serde"]
 thiserror = "1.0.31"
 chrono = "0.4"
 nom = "4.0.0"
-byteorder = "1"
 
 serde = { version = "1.0.70", optional = true, features = ["derive"] }
