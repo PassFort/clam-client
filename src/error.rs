@@ -17,7 +17,7 @@ pub enum ClamError {
     InvalidIpAddress(std::net::AddrParseError),
     /// Generated when a`ClamClient` is unable to connect to the specified ClamAV socket
     #[error("{0}")]
-    ConnectionError(std::io::Error),
+    ConnectionError(#[from] std::io::Error),
     /// Generated when the command issued cannot be successfully written to the ClamAV socket
     #[error("{0}")]
     CommandError(std::io::Error),

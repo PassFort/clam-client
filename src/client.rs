@@ -3,7 +3,7 @@
 
 use crate::error::ClamError;
 use crate::response::{ClamScanResult, ClamStats, ClamVersion};
-use std::io::{BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::IpAddr;
 use std::net::SocketAddr;
 use std::net::TcpStream;
@@ -188,23 +188,23 @@ impl ClamClient {
     /// ```
     pub fn scan_stream<T: Read>(&self, stream: T) -> ClamResult<ClamScanResult> {
         let mut reader = BufReader::new(stream);
-        let mut buffer = [0; 4096];
         let mut connection = self.connect()?;
 
         self.connection_write(&connection, b"zINSTREAM\0")?;
 
-        while let Ok(bytes_read) = reader.read(&mut buffer) {
-            if bytes_read > u32::MAX as usize {
-                return Err(ClamError::InvalidDataLengthError(bytes_read));
-            }
-
-            // Make sure to pad `bytes_read` to 4 bytes (regardless of architecture) for the chunk header
-            self.connection_write(&connection, &(bytes_read as u64).to_be_bytes())?;
-            self.connection_write(&connection, &buffer)?;
-
-            if bytes_read < 4096 {
-                break;
-            }
+        loop {
+            let bytes_read = {
+                let buf = reader.fill_buf()?;
+                assert!(buf.len() < u32::MAX as usize);
+                if buf.is_empty() {
+                    break;
+                }
+                // Make sure to pad `buf.len()` to 4 bytes regardless of the architecture
+                self.connection_write(&connection, &(buf.len() as u32).to_be_bytes())?;
+                self.connection_write(&connection, buf)?;
+                buf.len()
+            };
+            reader.consume(bytes_read);
         }
 
         self.connection_write(&connection, &[0, 0, 0, 0])?;
